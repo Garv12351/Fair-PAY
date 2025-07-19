@@ -85,3 +85,14 @@ This project effectively uses ML to:
 - [Seaborn Documentation](https://seaborn.pydata.org/)
 - [Matplotlib Documentation](https://matplotlib.org/)
 - [Google Colab](https://colab.research.google.com/)
+
+---
+Outputs
+<img width="1029" height="484" alt="image" src="https://github.com/user-attachments/assets/aa945ac9-9330-4888-8d6c-010d31a60dac" />
+<img width="643" height="392" alt="image" src="https://github.com/user-attachments/assets/2ea83bdf-7cb3-45d1-bedd-b1e116ceeb8d" />
+<img width="666" height="438" alt="image" src="https://github.com/user-attachments/assets/8b6c4edf-ee09-4178-9d6f-ce0660053c97" />
+<img width="662" height="359" alt="image" src="https://github.com/user-attachments/assets/4c62757b-1572-40e3-a922-fee6eab8242a" />
+<img width="502" height="500" alt="image" src="https://github.com/user-attachments/assets/c4e6a701-623c-4605-a85c-620628fccab2" />
+
+
+
