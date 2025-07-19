@@ -1,0 +1,129 @@
+# ================================
+# FairPay AI – Salary Analysis App
+# ================================
+
+# 📦 Step 1: Install Required Libraries
+!pip install -q pandas numpy scikit-learn plotly seaborn
+
+# 📚 Step 2: Import Libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import plotly.express as px
+import matplotlib.pyplot as plt
+
+from google.colab import files
+from scipy import stats
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_absolute_error
+from IPython.display import display
+import io
+
+# 📤 Step 3: Upload the Dataset
+print("📁 Please upload a CSV file that contains a 'Salary' column...")
+uploaded = files.upload()
+filename = next(iter(uploaded))
+df = pd.read_csv(filename)
+
+# ✅ Step 4: Display Data Info
+print(f"\n✅ Dataset loaded successfully with {len(df)} rows.")
+print("📌 Columns:", list(df.columns))
+df.head()
+
+# 📊 Step 5: Show Salary Distribution
+fig = px.histogram(df, x="Salary", nbins=30, title="Salary Distribution")
+fig.show()
+
+# 📈 Step 6: Show Salary Statistics
+print("\n📊 Salary Summary:")
+display(df["Salary"].describe())
+
+# ⚖️ Step 7: Gender Pay Gap Analysis (Optional)
+if "Gender" in df.columns:
+    male_salaries = df[df["Gender"].str.lower() == "male"]["Salary"]
+    female_salaries = df[df["Gender"].str.lower() == "female"]["Salary"]
+
+    if len(male_salaries) > 10 and len(female_salaries) > 10:
+        t_stat, p_value = stats.ttest_ind(male_salaries, female_salaries, equal_var=False)
+        gender_gap = female_salaries.mean() - male_salaries.mean()
+
+        print("\n⚖️ Gender Pay Gap Detected:")
+        print(f"  • Avg Male Salary   : ₹{round(male_salaries.mean(), 2)}")
+        print(f"  • Avg Female Salary : ₹{round(female_salaries.mean(), 2)}")
+        print(f"  • Gap (F - M)        : ₹{round(gender_gap, 2)}")
+        print(f"  • p-value (t-test)   : {round(p_value, 4)} {'← Significant difference' if p_value < 0.05 else ''}")
+
+# 🛠️ Step 8: Select Features & Target for ML
+target = "Salary"
+numeric_cols = df.select_dtypes(include="number").columns.drop(target, errors="ignore")
+categorical_cols = df.select_dtypes(include="object").columns.drop(target, errors="ignore")
+
+X = df[numeric_cols.tolist() + categorical_cols.tolist()]
+y = df[target]
+
+# 🧠 Step 9: Create ML Pipeline
+preprocessor = ColumnTransformer([
+    ("num", "passthrough", numeric_cols),
+    ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
+])
+
+model = Pipeline([
+    ("preprocess", preprocessor),
+    ("rf", RandomForestRegressor(n_estimators=300, random_state=42))
+])
+
+# 🔀 Step 10: Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 🏋️ Step 11: Train the Model
+model.fit(X_train, y_train)
+
+# 🧪 Step 12: Evaluate the Model
+y_pred = model.predict(X_test)
+r2 = round(r2_score(y_test, y_pred), 3)
+mae = round(mean_absolute_error(y_test, y_pred), 2)
+
+print("\n🧮 Model Performance:")
+print(f"  • R² Score : {r2}")
+print(f"  • MAE      : ₹{mae}")
+
+# 📌 Step 13: Feature Importance (Top 10)
+rf_model = model.named_steps["rf"]
+feature_names = model.named_steps["preprocess"].get_feature_names_out()
+importances = pd.Series(rf_model.feature_importances_, index=feature_names)
+
+importances.sort_values(ascending=False).head(10).plot(
+    kind="barh", figsize=(8, 5), title="Top 10 Features Affecting Salary"
+)
+plt.gca().invert_yaxis()
+plt.xlabel("Importance Score")
+plt.show()
+
+# 🤖 Step 14: Make a Live Prediction
+sample = X_test.iloc[[0]]
+predicted_salary = round(model.predict(sample)[0], 2)
+
+print("\n🤖 Sample Prediction:")
+print(sample)
+print("  → Predicted Salary:", predicted_salary)
+print("  → Actual Salary   :", y_test.iloc[0])
+
+# Step 8: Pairplot of features
+sns.pairplot(df)
+plt.suptitle("📉 Pairplot of Dataset Features", y=1.02)
+plt.show()
+
+
+# Step 14: Actual vs Predicted Visualization
+plt.figure(figsize=(10, 5))
+plt.scatter(y_test, y_pred, color='teal')
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2)
+plt.xlabel('Actual Salary')
+plt.ylabel('Predicted Salary')
+plt.title('🔍 Actual vs Predicted Salary')
+plt.grid(True)
+plt.show()
